@@ -13,8 +13,9 @@ import CoreMotion
 public struct AccelerometerStickerMotionEffect: StickerMotionEffect {
     let intensity: Double
     let maxRotation: Angle
+    let dontRotate: Bool
     let updateInterval: TimeInterval
-
+    
     @Environment(\.stickerShaderUpdater) private var shaderUpdater
 
     public func body(content: Content) -> some View {
@@ -26,8 +27,8 @@ public struct AccelerometerStickerMotionEffect: StickerMotionEffect {
                         let yRotation: Double = diminishingRotation(for: attitude.pitch * intensity)
 
                         view
-                            .rotation3DEffect(.radians(xRotation), axis: (0, 1, 0))
-                            .rotation3DEffect(.radians(yRotation), axis: (-1, 0, 0))
+                            .rotation3DEffect(.radians(dontRotate ? 0 : xRotation), axis: (0, 1, 0))
+                            .rotation3DEffect(.radians(dontRotate ? 0 : yRotation), axis: (-1, 0, 0))
                             .onChange(of: attitude) { oldValue, newValue in
                                 shaderUpdater.update(
                                     with: .init(
@@ -55,11 +56,13 @@ public extension StickerMotionEffect where Self == AccelerometerStickerMotionEff
     static func accelerometer(
         intensity: Double = 1,
         maxRotation: Angle = .degrees(90),
+        dontRotate: Bool = false,
         updateInterval: TimeInterval = 0.02
     ) -> Self {
         .init(
             intensity: intensity,
             maxRotation: maxRotation,
+            dontRotate: dontRotate,
             updateInterval: updateInterval
         )
     }
