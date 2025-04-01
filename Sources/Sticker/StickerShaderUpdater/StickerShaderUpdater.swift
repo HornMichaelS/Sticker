@@ -5,16 +5,17 @@
 //  Created by Benjamin Pisano on 03/11/2024.
 //
 
+import Combine
 import SwiftUI
-import Observation
 
 @available(iOS 17.0, *)
-@Observable
-final class StickerShaderUpdater {
+struct StickerShaderUpdater {
     typealias ChangeHandler = (_ motion: StickerMotion) -> Void
 
-    private(set) var motion: StickerMotion = .init()
-    
+    let motionSubject = CurrentValueSubject<StickerMotion, Never>(.init())
+
+    var motion: StickerMotion { motionSubject.value }
+
     private let onChange: ChangeHandler
 
     init(onChange: @escaping @Sendable ChangeHandler) {
@@ -23,19 +24,21 @@ final class StickerShaderUpdater {
 
     @MainActor
     func update(with transform: StickerTransform) {
-        motion = .init(
+        motionSubject.value = .init(
             isActive: true,
             transform: transform
         )
+
         onChange(motion)
     }
 
     @MainActor
     func setNeutral() {
-        motion = .init(
+        motionSubject.value = .init(
             isActive: false,
             transform: .neutral
         )
+
         onChange(motion)
     }
 }
